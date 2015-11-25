@@ -33,27 +33,32 @@ public class AlarmController {
     private String title, description;
     private SharedPreferences preferences;
     private boolean alarmSet;
+    private AlarmManager alarmManager;
 
     private AlarmController(Context c) {
         calendar = Calendar.getInstance();
         preferences = c.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
         title = preferences.getString(PREF_TITLE, "");
         description = preferences.getString(PREF_DESCRIPTION, "");
-        int year, month, day, hour, minute;
-        year = preferences.getInt(PREF_YEAR, getYear());
-        month = preferences.getInt(PREF_MONTH, getMonth());
-        day = preferences.getInt(PREF_DAY, getDay());
-        hour = preferences.getInt(PREF_HOUR, getHour());
-        minute = preferences.getInt(PREF_MINUTE, getMinute());
         alarmSet = preferences.getBoolean(PREF_SET, false);
-        setDate(year, month, day);
-        setTime(hour, minute);
+        if (alarmSet) {
+            setDate(
+                    preferences.getInt(PREF_YEAR, getYear()),
+                    preferences.getInt(PREF_MONTH, getMonth()),
+                    preferences.getInt(PREF_DAY, getDay())
+            );
+            setTime(
+                    preferences.getInt(PREF_HOUR, getHour()),
+                    preferences.getInt(PREF_MINUTE, getMinute())
+            );
+        }
+        alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
     }
 
     public static AlarmController getInstance(Context c) {
+        context = c;
         if (instance == null)
             instance = new AlarmController(c);
-        context = c;
         return instance;
     }
 
@@ -145,14 +150,17 @@ public class AlarmController {
     }
 
     public void setAlarm() {
-        alarmSet = true;
+        if (isAlarmSet()) {
+            alarmManager.cancel(getPendIntent(context));
+            Toast.makeText(context, "Notification updated!", Toast.LENGTH_LONG).show();
+        } else {
+            alarmSet = true;
+            Toast.makeText(context, "Notification created!", Toast.LENGTH_LONG).show();
+        }
         saveChanges();
-        AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(context, AlarmReceiver.class);
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
-        alarmMgr.set(AlarmManager.RTC_WAKEUP,
-                calendar.getTimeInMillis(), alarmIntent);
-        Toast.makeText(context, "Notification created!", Toast.LENGTH_LONG).show();
+        alarmManager.set(AlarmManager.RTC_WAKEUP,
+                calendar.getTimeInMillis(), getPendIntent(context));
+
     }
 
     public static class AlarmReceiver extends BroadcastReceiver {
@@ -172,8 +180,7 @@ public class AlarmController {
             AlarmController controller = AlarmController.getInstance(context);
             mBuilder.setContentTitle(controller.getTitle());
             mBuilder.setContentText(controller.getDescription());
-            Intent i = new Intent(context, MainActivity.class);
-            PendingIntent pI = PendingIntent.getActivity(context, 0, i, 0);
+            PendingIntent pI = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), 0);
             mBuilder.setContentIntent(pI);
             mBuilder.setAutoCancel(true);
             NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -181,6 +188,10 @@ public class AlarmController {
             context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit().clear().apply();
             wakeLock.release();
         }
+    }
+
+    public PendingIntent getPendIntent(Context c) {
+        return PendingIntent.getBroadcast(context, 0, new Intent(context, AlarmReceiver.class), 0);
     }
 
     public boolean isTimeExpired() {

@@ -6,11 +6,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -18,13 +20,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private DatePickerDialog datePickerDialog;
     private Button date, time, save;
     private AlarmController alarmController;
+    private EditText title, description;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        EditText title = (EditText) findViewById(R.id.title);
-        EditText description = (EditText) findViewById(R.id.description);
+        title = (EditText) findViewById(R.id.title);
+        description = (EditText) findViewById(R.id.description);
         date = (Button) findViewById(R.id.date_button);
         time = (Button) findViewById(R.id.time_button);
         save = (Button) findViewById(R.id.save_button);
@@ -97,9 +100,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else if (id == R.id.time_button) {
             timePickerDialog.show();
         } else if (id == R.id.save_button) {
-            alarmController.setAlarm();
-            save.setText(R.string.update);
+            if (isAllValid()) {
+                alarmController.setAlarm();
+                save.setText(R.string.update);
+            } else {
+                Toast.makeText(this, "Something wrong!", Toast.LENGTH_LONG).show();
+            }
+
         }
+    }
+
+    private boolean isAllValid() {
+        return !title.getText().toString().equals("") && !description.getText().toString().equals("");
     }
 
     @Override
