@@ -29,7 +29,6 @@ public class AlarmController {
 
     private static AlarmController instance;
     private Calendar calendar;
-    private static Context context;
     private String title, description;
     private SharedPreferences preferences;
     private boolean alarmSet;
@@ -52,11 +51,10 @@ public class AlarmController {
                     preferences.getInt(PREF_MINUTE, getMinute())
             );
         }
-        alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        alarmManager = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
     }
 
     public static AlarmController getInstance(Context c) {
-        context = c;
         if (instance == null)
             instance = new AlarmController(c);
         return instance;
@@ -149,7 +147,7 @@ public class AlarmController {
         return alarmSet;
     }
 
-    public void setAlarm() {
+    public void setAlarm(Context context) {
         if (isAlarmSet()) {
             alarmManager.cancel(getPendIntent(context));
             Toast.makeText(context, "Notification updated!", Toast.LENGTH_LONG).show();
@@ -191,7 +189,7 @@ public class AlarmController {
     }
 
     public PendingIntent getPendIntent(Context c) {
-        return PendingIntent.getBroadcast(context, 0, new Intent(context, AlarmReceiver.class), 0);
+        return PendingIntent.getBroadcast(c, 0, new Intent(c, AlarmReceiver.class), 0);
     }
 
     public boolean isTimeExpired() {

@@ -95,18 +95,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         int id = v.getId();
-        if (id == R.id.date_button) {
-            datePickerDialog.show();
-        } else if (id == R.id.time_button) {
-            timePickerDialog.show();
-        } else if (id == R.id.save_button) {
-            if (isAllValid()) {
-                alarmController.setAlarm();
-                save.setText(R.string.update);
-            } else {
-                Toast.makeText(this, "Something wrong!", Toast.LENGTH_LONG).show();
-            }
-
+        switch (id) {
+            case R.id.date_button:
+                datePickerDialog.show();
+                break;
+            case R.id.time_button:
+                timePickerDialog.show();
+                break;
+            case R.id.save_button:
+                if (isAllValid()) {
+                    alarmController.setAlarm(this);
+                    save.setText(R.string.update);
+                } else {
+                    Toast.makeText(this, "Something wrong!", Toast.LENGTH_LONG).show();
+                }
         }
     }
 
