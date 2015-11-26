@@ -109,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 } else {
                     Toast.makeText(this, "Something wrong!", Toast.LENGTH_LONG).show();
                 }
+                break;
         }
     }
 
